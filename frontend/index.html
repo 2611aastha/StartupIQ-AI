@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StartupIQ — AI Startup Validator</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding: 120px 72px 80px; position: relative; z-index: 1;
+    }
+    .hero-inner { max-width: 680px; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 14px; border-radius: 6px; margin-bottom: 32px;
+      background: rgba(139,111,71,0.15); border: 1px solid rgba(139,111,71,0.3);
+      font-size: 12px; font-weight: 600; color: var(--brown2);
+      font-family: 'DM Mono', monospace; letter-spacing: 0.04em;
+    }
+    .pill-live { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; animation: agentPulse 2s infinite; }
+    .hero h1 {
+      font-size: 68px; font-weight: 800; line-height: 1.04;
+      letter-spacing: -0.04em; margin-bottom: 28px;
+      color: var(--cream);
+    }
+    .hero h1 em { font-style: normal; color: var(--text3); }
+    .hero p {
+      font-size: 17px; color: var(--text2); line-height: 1.8;
+      max-width: 520px; margin-bottom: 40px;
+    }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 64px; }
+    .hero-right {
+      position: absolute; right: 72px; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 14px;
+      width: 340px;
+    }
+    .mini-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+      animation: floatCard 5s ease-in-out infinite;
+    }
+    .mini-card:nth-child(2) { animation-delay: -1.5s; margin-left: 24px; }
+    .mini-card:nth-child(3) { animation-delay: -3s; }
+    @keyframes floatCard {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .mini-card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; color: var(--text3); margin-bottom: 8px; }
+    .mini-card-val { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; }
+    .mini-score { display: flex; align-items: center; gap: 8px; }
+    .mini-score-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .mini-score-fill { height: 100%; background: var(--grad-green); border-radius: 2px; width: 78%; }
+
+    .bottom-meta {
+      display: flex; gap: 40px; flex-wrap: wrap;
+    }
+    .meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .meta-val { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+    .meta-label { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
+
+    .section { padding: 100px 72px; position: relative; z-index: 1; }
+    .section-inner { max-width: 1060px; margin: 0 auto; }
+    .section-header { max-width: 560px; margin-bottom: 56px; }
+    .section-title { font-size: 38px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 16px; }
+    .section-sub { font-size: 16px; color: var(--text2); line-height: 1.75; }
+
+    /* Agent pipeline visual */
+    .pipeline-wrap { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+    .pipeline-step {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 18px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .pipeline-step:hover { border-color: var(--border2); transform: translateX(6px); }
+    .pipeline-num {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; font-family: 'DM Mono', monospace;
+      color: var(--text3); flex-shrink: 0;
+    }
+    .pipeline-step:hover .pipeline-num { background: rgba(124,179,66,0.1); border-color: rgba(124,179,66,0.3); color: var(--primary); }
+    .pipeline-label { font-size: 14px; font-weight: 600; color: var(--text2); flex: 1; }
+    .pipeline-step:hover .pipeline-label { color: var(--text); }
+    .pipeline-arrow { font-size: 16px; color: var(--text3); }
+
+    /* Features bento grid */
+    .bento { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; gap: 14px; }
+    .bento-cell {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+      position: relative; overflow: hidden;
+      transition: all 0.3s var(--ease-out-expo);
+    }
+    .bento-cell:hover { border-color: var(--border2); transform: translateY(-3px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .bento-cell.wide { grid-column: span 2; }
+    .bento-cell.tall { grid-row: span 2; }
+    .bento-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 18px; }
+    .bento-cell h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .bento-cell p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+    .bento-corner {
+      position: absolute; bottom: -20px; right: -20px;
+      width: 80px; height: 80px; border-radius: 50%;
+      opacity: 0.06;
+    }
+
+    /* CTA strip */
+    .cta-strip {
+      margin: 0 72px 72px; border-radius: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 56px 64px;
+      display: flex; align-items: center; justify-content: space-between; gap: 32px;
+      position: relative; z-index: 1; overflow: hidden;
+    }
+    .cta-strip::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,179,66,0.4), rgba(212,160,23,0.4), transparent);
+    }
+    .cta-strip h2 { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 10px; }
+    .cta-strip p { font-size: 15px; color: var(--text2); line-height: 1.7; max-width: 440px; }
+    .cta-strip-actions { display: flex; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+
+    footer {
+      padding: 28px 72px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; z-index: 1; flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 8px; }
+    footer p { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    @media (max-width: 1100px) {
+      .hero-right { display: none; }
+      .hero { padding: 120px 36px 80px; }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 40px; }
+      .section { padding: 60px 24px; }
+      .bento { grid-template-columns: 1fr; }
+      .bento-cell.wide { grid-column: span 1; }
+      .cta-strip { margin: 0 24px 48px; padding: 36px 28px; flex-direction: column; align-items: flex-start; }
+      footer { padding: 24px; }
+    }
+  </style>
+</head>
+<body class="grid-bg">
+
+<div class="orb-wrap" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-mark">S</div>
+    <span style="color:var(--cream);">StartupIQ</span>
+  </div>
+  <div class="nav-links">
+    <a href="#process">Process</a>
+    <a href="#features">Features</a>
+    <a href="pages/login.html" class="btn btn-outline" style="padding:8px 18px;">Sign In</a>
+    <a href="pages/register.html" class="btn btn-primary" style="padding:8px 18px;">Get Started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-pill anim-fade-in">
+      <span class="pill-live"></span>
+      Multi-Agent AI Pipeline
+    </div>
+    <h1 class="anim-fade-up">
+      Validate your idea <em>before</em><br>
+      anyone else <span class="gradient-text">does.</span>
+    </h1>
+    <p class="anim-fade-up anim-delay-1">
+      Seven specialized AI agents run in parallel — delivering market research, competitor intel, SWOT analysis, revenue models, risk scoring, a business plan, and an investor pitch in under 60 seconds.
+    </p>
+    <div class="hero-cta anim-fade-up anim-delay-2">
+      <a href="pages/register.html" class="btn btn-primary" style="padding:14px 28px;font-size:15px;">Start Free Validation</a>
+      <a href="#process" class="btn btn-outline" style="padding:14px 28px;font-size:15px;">How It Works</a>
+    </div>
+    <div class="bottom-meta anim-fade-up anim-delay-3">
+      <div class="meta-item"><div class="meta-val gradient-text">7</div><div class="meta-label">AI Agents</div></div>
+      <div class="meta-item"><div class="meta-val gradient-text">&lt;60s</div><div class="meta-label">Analysis Time</div></div>
+      <div class="meta-item"><div class="meta-val gradient-text">8</div><div class="meta-label">Report Sections</div></div>
+      <div class="meta-item"><div class="meta-val gradient-text">PDF</div><div class="meta-label">Export Ready</div></div>
+    </div>
+  </div>
+
+  <!-- Floating cards -->
+  <div class="hero-right anim-fade-in anim-delay-2">
+    <div class="mini-card">
+      <div class="mini-card-label">Startup Score</div>
+      <div class="mini-card-val gradient-text">82 / 100</div>
+      <div class="mini-score" style="margin-top:10px;">
+        <div class="mini-score-bar"><div class="mini-score-fill"></div></div>
+        <span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">Strong</span>
+      </div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-label">Market Opportunity</div>
+      <div class="mini-card-val" style="color:var(--amber);">$4.2B</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3);">CAGR 18.5% · High Growth</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-label">Risk Level</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+        <span class="badge badge-amber" style="font-size:13px;padding:5px 12px;">Medium</span>
+        <span style="font-size:12px;color:var(--text3);">5 risks identified</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" style="margin:0 72px;"></div>
+
+<!-- Process -->
+<section class="section" id="process">
+  <div class="section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
+      <div class="section-header" style="margin-bottom:0;">
+        <div class="section-tag reveal">Process</div>
+        <h2 class="section-title reveal">Seven agents. One answer.</h2>
+        <p class="section-sub reveal">Each agent specializes in one domain. They run in parallel, then synthesize into a single actionable report.</p>
+        <div style="margin-top:32px;" class="reveal">
+          <a href="pages/register.html" class="btn btn-ghost">Run Your First Analysis</a>
+        </div>
+      </div>
+      <div class="pipeline-wrap">
+        <div class="pipeline-step reveal anim-delay-1">
+          <div class="pipeline-num">01</div>
+          <div class="pipeline-label">Market Research Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal anim-delay-2">
+          <div class="pipeline-num">02</div>
+          <div class="pipeline-label">Competitor Intelligence Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal anim-delay-3">
+          <div class="pipeline-num">03</div>
+          <div class="pipeline-label">SWOT Analysis Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal anim-delay-4">
+          <div class="pipeline-num">04</div>
+          <div class="pipeline-label">Revenue Model Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal anim-delay-5">
+          <div class="pipeline-num">05</div>
+          <div class="pipeline-label">Risk Assessment Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal">
+          <div class="pipeline-num">06</div>
+          <div class="pipeline-label">Business Plan Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+        <div class="pipeline-step reveal">
+          <div class="pipeline-num">07</div>
+          <div class="pipeline-label">Investor Pitch Agent</div>
+          <div class="pipeline-arrow">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" style="margin:0 72px;"></div>
+
+<!-- Features Bento -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag reveal">Features</div>
+      <h2 class="section-title reveal">Built for founders<br>who move <span class="gradient-text-warm">fast.</span></h2>
+    </div>
+    <div class="bento">
+      <div class="bento-cell wide reveal">
+        <div class="bento-icon" style="background:rgba(124,179,66,0.12);">
+          <svg width="18" height="18" fill="none" stroke="#7CB342" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3>Market Research</h3>
+        <p>TAM / SAM / SOM breakdown, CAGR projections, target audience segmentation, and live industry trends — all generated in seconds.</p>
+        <div class="bento-corner" style="background:var(--primary);"></div>
+      </div>
+      <div class="bento-cell reveal anim-delay-1">
+        <div class="bento-icon" style="background:rgba(212,160,23,0.12);">
+          <svg width="18" height="18" fill="none" stroke="#D4A017" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 000 11.4M17.7 6.3a8 8 0 010 11.4"/></svg>
+        </div>
+        <h3>Competitor Intel</h3>
+        <p>Real competitor profiles with market share, strength ratings, and the gap your startup can exploit.</p>
+        <div class="bento-corner" style="background:var(--amber);"></div>
+      </div>
+      <div class="bento-cell reveal anim-delay-2">
+        <div class="bento-icon" style="background:rgba(139,111,71,0.12);">
+          <svg width="18" height="18" fill="none" stroke="#A68B5B" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+        </div>
+        <h3>SWOT Analysis</h3>
+        <p>Full four-quadrant analysis with a 0–100 score and a Go / Pivot / No-Go verdict.</p>
+        <div class="bento-corner" style="background:var(--brown);"></div>
+      </div>
+      <div class="bento-cell reveal anim-delay-1">
+        <div class="bento-icon" style="background:rgba(192,57,43,0.12);">
+          <svg width="18" height="18" fill="none" stroke="#e74c3c" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        </div>
+        <h3>Risk Assessment</h3>
+        <p>Five risk categories scored with mitigation strategies and a critical-path alert.</p>
+        <div class="bento-corner" style="background:var(--danger);"></div>
+      </div>
+      <div class="bento-cell wide reveal anim-delay-2">
+        <div class="bento-icon" style="background:rgba(124,179,66,0.12);">
+          <svg width="18" height="18" fill="none" stroke="#7CB342" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>Business Plan + Investor Pitch</h3>
+        <p>A complete executive summary, financial projections, milestones, and an investor-ready pitch deck — all exportable to PDF in one click.</p>
+        <div class="bento-corner" style="background:var(--primary);"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Strip -->
+<div class="cta-strip reveal">
+  <div>
+    <h2>Your next startup deserves <span class="gradient-text">real data.</span></h2>
+    <p>Stop guessing. Get a full AI-powered validation report in under 60 seconds — completely free to start.</p>
+  </div>
+  <div class="cta-strip-actions">
+    <a href="pages/register.html" class="btn btn-primary" style="padding:14px 28px;font-size:15px;">Validate My Idea</a>
+    <a href="pages/login.html" class="btn btn-outline" style="padding:14px 28px;font-size:15px;">Sign In</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">
+    <div class="nav-logo-mark" style="width:22px;height:22px;font-size:10px;">S</div>
+    <span style="font-size:15px;font-weight:700;color:var(--text);">StartupIQ</span>
+  </div>
+  <p>Node.js · MongoDB · Groq AI · Multi-Agent Architecture</p>
+  <p style="color:var(--text3);">© 2024 StartupIQ</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

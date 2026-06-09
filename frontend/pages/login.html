@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — StartupIQ</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .auth-wrap { width: 100%; max-width: 400px; position: relative; z-index: 1; }
+    .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; justify-content: center; }
+    .auth-logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--grad-green); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #0D1208; }
+    .auth-logo-text { font-size: 20px; font-weight: 800; color: var(--text); }
+    .auth-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; margin-bottom: 4px; }
+    .auth-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+    .auth-foot { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text3); }
+    .auth-foot a { color: var(--primary); font-weight: 600; transition: opacity 0.2s; }
+    .auth-foot a:hover { opacity: 0.8; }
+  </style>
+</head>
+<body class="grid-bg">
+
+<div class="orb-wrap" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+
+<div class="auth-wrap anim-scale-in">
+  <div class="auth-logo">
+    <div class="auth-logo-mark">S</div>
+    <div class="auth-logo-text">StartupIQ</div>
+  </div>
+
+  <div class="card">
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-sub">Sign in to your account</div>
+
+    <div id="alert-box"></div>
+
+    <div class="input-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com"/>
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Your password"/>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="login()">
+      Sign In
+    </button>
+
+    <div class="auth-foot" style="margin-top:16px;">
+      No account yet? <a href="register.html">Create one free</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const alertBox = document.getElementById('alert-box');
+    if (!email || !password) {
+      alertBox.innerHTML = '<div class="alert alert-error">Email and password are required.</div>'; return;
+    }
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) { alertBox.innerHTML = `<div class="alert alert-error">${data.message}</div>`; return; }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = 'dashboard.html';
+    } catch {
+      alertBox.innerHTML = '<div class="alert alert-error">Connection error. Is the server running?</div>';
+    }
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+</script>
+</body>
+</html>

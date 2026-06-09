@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — StartupIQ</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body { display: flex; min-height: 100vh; }
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+      transition: all 0.3s var(--ease-out-expo); cursor: pointer;
+      position: relative; overflow: hidden;
+    }
+    .project-card::before {
+      content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,179,66,0.2), transparent);
+    }
+    .project-card:hover {
+      border-color: var(--border2); transform: translateY(-3px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .project-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .project-desc {
+      font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 16px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .project-footer { display: flex; align-items: center; justify-content: space-between; }
+    .project-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+    .score-chip { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
+    .delete-btn {
+      background: none; border: none; cursor: pointer; color: var(--text3);
+      padding: 4px; border-radius: 6px; transition: color 0.2s; line-height: 0;
+    }
+    .delete-btn:hover { color: #e74c3c; }
+    .empty-state { text-align: center; padding: 80px 20px; }
+    .empty-icon {
+      width: 56px; height: 56px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+    }
+    .empty-state h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .empty-state p { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+<div class="orb-wrap" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo-mark">S</div>
+    <div class="sidebar-logo-text">StartupIQ</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar" id="user-avatar">U</div>
+    <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+    <div class="sidebar-user-email" id="sidebar-email"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Navigation</div>
+    <div class="sidebar-item active">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="sidebar-item" onclick="window.location.href='validate.html'">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      New Validation
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn btn-outline" style="width:100%;justify-content:center;font-size:13px;" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main-content" style="position:relative;z-index:1;">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div class="page-eyebrow">Overview</div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Your startup validation projects</div>
+    </div>
+    <a href="validate.html" class="btn btn-primary" style="margin-top:8px;">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Validation
+    </a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(124,179,66,0.1);">
+        <svg width="17" height="17" fill="none" stroke="#7CB342" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+      </div>
+      <div class="stat-value gradient-text" id="stat-total">—</div>
+      <div class="stat-label">Projects Created</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(212,160,23,0.1);">
+        <svg width="17" height="17" fill="none" stroke="#D4A017" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="stat-value gradient-text-warm" id="stat-complete">—</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap" style="background:rgba(139,111,71,0.1);">
+        <svg width="17" height="17" fill="none" stroke="#A68B5B" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="stat-value" id="stat-avg-score" style="color:var(--cream);">—</div>
+      <div class="stat-label">Avg Startup Score</div>
+    </div>
+  </div>
+
+  <!-- Projects -->
+  <div id="projects-container">
+    <div style="display:flex;align-items:center;justify-content:center;padding:60px;">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!token) window.location.href = 'login.html';
+
+  document.getElementById('sidebar-name').textContent = user.name || 'User';
+  document.getElementById('sidebar-email').textContent = user.email || '';
+  if (document.getElementById('user-avatar')) {
+    document.getElementById('user-avatar').textContent = (user.name || 'U')[0].toUpperCase();
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '../index.html'; }
+
+  function getRiskBadge(level) {
+    if (!level) return '';
+    const map = { High: 'badge-red', Medium: 'badge-amber', Low: 'badge-green' };
+    return `<span class="badge ${map[level] || 'badge-brown'}">${level} Risk</span>`;
+  }
+
+  function getStatusBadge(status) {
+    const map = { Complete: 'badge-green', Processing: 'badge-amber', Failed: 'badge-red' };
+    return `<span class="badge ${map[status] || 'badge-brown'}">${status}</span>`;
+  }
+
+  function scoreColor(s) {
+    if (s >= 70) return 'var(--primary)';
+    if (s >= 45) return 'var(--amber)';
+    return '#e74c3c';
+  }
+
+  async function deleteProject(e, id) {
+    e.stopPropagation();
+    if (!confirm('Delete this project?')) return;
+    await fetch(`/api/projects/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    loadProjects();
+  }
+
+  async function loadProjects() {
+    try {
+      const res = await fetch('/api/projects', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) { localStorage.clear(); window.location.href = 'login.html'; return; }
+      const projects = await res.json();
+
+      document.getElementById('stat-total').textContent = projects.length;
+      const completed = projects.filter(p => p.status === 'Complete');
+      document.getElementById('stat-complete').textContent = completed.length;
+      const avgScore = completed.length
+        ? Math.round(completed.reduce((s, p) => s + (p.startupScore || 0), 0) / completed.length)
+        : 0;
+      document.getElementById('stat-avg-score').textContent = avgScore ? `${avgScore}/100` : '—';
+
+      const container = document.getElementById('projects-container');
+
+      if (projects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="24" height="24" fill="none" stroke="var(--text3)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <h3>No projects yet</h3>
+            <p>Validate your first startup idea to see your dashboard come alive.</p>
+            <a href="validate.html" class="btn btn-primary">Validate an Idea</a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `<div class="projects-grid">${projects.map(p => `
+        <div class="project-card" onclick="window.location.href='report.html?id=${p._id}'">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;">
+            <div class="project-title">${p.ideaTitle}</div>
+            <button class="delete-btn" onclick="deleteProject(event,'${p._id}')" title="Delete">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            </button>
+          </div>
+          <div class="project-desc">${p.ideaDescription}</div>
+          <div class="project-footer">
+            <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+              ${getStatusBadge(p.status)}
+              ${p.status === 'Complete' ? getRiskBadge(p.riskLevel) : ''}
+            </div>
+            ${p.status === 'Complete' ? `<div class="score-chip" style="color:${scoreColor(p.startupScore)}">${p.startupScore}<span style="font-size:11px;color:var(--text3);font-weight:400;">/100</span></div>` : ''}
+          </div>
+          <div class="project-date" style="margin-top:12px;">${new Date(p.createdAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>`).join('')}
+      </div>`;
+    } catch (err) {
+      document.getElementById('projects-container').innerHTML = '<div class="alert alert-error" style="margin:20px 0;">Failed to load projects.</div>';
+    }
+  }
+
+  loadProjects();
+</script>
+</body>
+</html>

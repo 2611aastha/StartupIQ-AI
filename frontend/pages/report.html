@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Report — StartupIQ</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { display: flex; min-height: 100vh; }
+
+    .report-hero {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; margin-bottom: 24px;
+      position: relative; overflow: hidden;
+    }
+    .report-hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,179,66,0.4), rgba(212,160,23,0.4), transparent);
+    }
+    .report-hero-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .report-meta h1 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 6px; letter-spacing: -0.02em; }
+    .report-meta p { font-size: 13px; color: var(--text2); line-height: 1.55; max-width: 480px; }
+    .report-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 14px; }
+
+    .score-block { text-align: center; flex-shrink: 0; }
+    .score-big { font-size: 52px; font-weight: 900; letter-spacing: -0.05em; line-height: 1; }
+    .score-denom { font-size: 14px; color: var(--text3); }
+    .score-lbl { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'DM Mono', monospace; margin-top: 4px; }
+
+    .section-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; margin-bottom: 18px;
+    }
+    .section-block h2 {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .section-block h2 svg { flex-shrink: 0; }
+
+    .market-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .market-tile {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; text-align: center;
+    }
+    .market-tile-val { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+    .market-tile-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .info-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .info-block-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+    .info-block-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+    .dot-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .dot-list li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; color: var(--text2); line-height: 1.5; }
+    .dot-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .dot-list.green li::before { background: var(--primary); }
+    .dot-list.amber li::before { background: var(--amber); }
+
+    .rev-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px; margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .rev-card:hover { border-color: var(--border2); }
+    .rev-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .rev-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .rev-proj { font-size: 13px; font-weight: 700; color: var(--primary); }
+    .rev-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+    .viability-row { display: flex; align-items: center; gap: 10px; }
+    .viability-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; width: 56px; }
+    .viability-score { font-size: 13px; font-weight: 700; color: var(--text); }
+    .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .pros-cons-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+    .pros-cons-label.p { color: var(--primary); }
+    .pros-cons-label.c { color: #e74c3c; }
+    .pros-cons li { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+
+    .risk-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; margin-bottom: 10px;
+    }
+    .risk-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .risk-cat { font-size: 14px; font-weight: 700; color: var(--text); }
+    .risk-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 10px; }
+    .mitigation {
+      font-size: 12px; color: #9CCC65;
+      background: rgba(124,179,66,0.07); border: 1px solid rgba(124,179,66,0.18);
+      padding: 8px 12px; border-radius: 7px;
+    }
+    .mitigation-label { font-weight: 700; margin-right: 4px; }
+
+    .plan-block { margin-bottom: 18px; }
+    .plan-label { font-size: 10px; font-weight: 700; color: var(--brown2); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+    .plan-text { font-size: 13px; color: var(--text2); line-height: 1.75; }
+
+    .milestone-list { display: flex; flex-direction: column; gap: 10px; }
+    .milestone { display: flex; gap: 14px; align-items: flex-start; }
+    .milestone-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; margin-top: 5px; }
+    .milestone-month { font-size: 11px; font-weight: 700; color: var(--primary); width: 80px; flex-shrink: 0; font-family: 'DM Mono', monospace; }
+    .milestone-goal { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+    .pitch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .elevator {
+      background: rgba(139,111,71,0.08); border: 1px solid rgba(139,111,71,0.22);
+      border-radius: 12px; padding: 20px; margin-top: 16px;
+    }
+    .elevator-label { font-size: 10px; font-weight: 700; color: var(--brown2); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+    .elevator-text { font-size: 15px; color: var(--cream2); line-height: 1.75; font-style: italic; }
+
+    .loading-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; gap: 16px; }
+
+    .report-actions { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+
+    @media (max-width: 768px) {
+      .two-col { grid-template-columns: 1fr; }
+      .report-hero-inner { flex-direction: column; }
+      .report-actions { flex-direction: row; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb-wrap" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo-mark">S</div>
+    <div class="sidebar-logo-text">StartupIQ</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar" id="user-avatar">U</div>
+    <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+    <div class="sidebar-user-email" id="sidebar-email"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Navigation</div>
+    <div class="sidebar-item" onclick="window.location.href='dashboard.html'">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="sidebar-item" onclick="window.location.href='validate.html'">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      New Validation
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn btn-outline" style="width:100%;justify-content:center;font-size:13px;" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main-content" id="report-main" style="position:relative;z-index:1;">
+  <div class="loading-center">
+    <div class="spinner"></div>
+    <div style="font-size:14px;color:var(--text3);">Loading report...</div>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!token) window.location.href = 'login.html';
+
+  document.getElementById('sidebar-name').textContent = user.name || 'User';
+  document.getElementById('sidebar-email').textContent = user.email || '';
+  if (document.getElementById('user-avatar')) {
+    document.getElementById('user-avatar').textContent = (user.name || 'U')[0].toUpperCase();
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '../index.html'; }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('id');
+  if (!projectId) window.location.href = 'dashboard.html';
+
+  function badge(level) {
+    const m = { High: 'badge-red', Medium: 'badge-amber', Low: 'badge-green' };
+    return `<span class="badge ${m[level] || 'badge-brown'}">${level}</span>`;
+  }
+  function scoreColor(s) {
+    if (s >= 70) return 'var(--primary)';
+    if (s >= 45) return 'var(--amber)';
+    return '#e74c3c';
+  }
+
+  async function loadReport() {
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const p = await res.json();
+      if (!res.ok || !p._id) { window.location.href = 'dashboard.html'; return; }
+
+      if (p.status !== 'Complete') {
+        document.getElementById('report-main').innerHTML = `
+          <div class="loading-center">
+            <div class="spinner"></div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);">Analysis Still Running</div>
+            <div style="font-size:14px;color:var(--text3);max-width:360px;">Usually takes 20–45 seconds. Page refreshes automatically.</div>
+            <button class="btn btn-ghost" onclick="loadReport()">Check Again</button>
+          </div>`;
+        setTimeout(loadReport, 5000);
+        return;
+      }
+
+      const a = p.analysis;
+      const m  = a.marketResearch  || {};
+      const c  = a.competitors     || {};
+      const s  = a.swot            || {};
+      const rv = a.revenueModels   || {};
+      const rk = a.riskAssessment  || {};
+      const bp = a.businessPlan    || {};
+      const pt = a.investorPitch   || {};
+
+      document.title = `${p.ideaTitle} — StartupIQ`;
+
+      document.getElementById('report-main').innerHTML = `
+
+        <!-- Back link -->
+        <div style="margin-bottom:20px;">
+          <a href="dashboard.html" style="font-size:13px;color:var(--text3);display:inline-flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to Dashboard
+          </a>
+        </div>
+
+        <!-- Report Hero -->
+        <div class="report-hero anim-fade-up">
+          <div class="report-hero-inner">
+            <div class="report-meta">
+              <h1>${p.ideaTitle}</h1>
+              <p>${p.ideaDescription}</p>
+              <div class="report-badges">
+                <span class="badge badge-green">Complete</span>
+                ${badge(p.riskLevel + ' Risk')}
+                <span class="badge badge-brown">${m.growthPotential || '—'} Market</span>
+                <span class="badge ${s.recommendation === 'Go' ? 'badge-green' : s.recommendation === 'No-Go' ? 'badge-red' : 'badge-amber'}">${s.recommendation || '—'}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+              <div class="score-block">
+                <div class="score-big" style="color:${scoreColor(p.startupScore)}">${p.startupScore}</div>
+                <div class="score-denom">/100</div>
+                <div class="score-lbl">Startup Score</div>
+              </div>
+              <div class="report-actions">
+                <button class="btn btn-primary" onclick="downloadPDF()" style="padding:10px 18px;font-size:13px;">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export PDF
+                </button>
+                <a href="validate.html" class="btn btn-outline" style="padding:10px 18px;font-size:13px;justify-content:center;">New Idea</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs anim-fade-up anim-delay-1">
+          <div class="tab active" onclick="switchTab('market',this)">Market</div>
+          <div class="tab" onclick="switchTab('competitors',this)">Competitors</div>
+          <div class="tab" onclick="switchTab('swot',this)">SWOT</div>
+          <div class="tab" onclick="switchTab('revenue',this)">Revenue</div>
+          <div class="tab" onclick="switchTab('risk',this)">Risk</div>
+          <div class="tab" onclick="switchTab('plan',this)">Business Plan</div>
+          <div class="tab" onclick="switchTab('pitch',this)">Pitch</div>
+        </div>
+
+        <!-- Market Research -->
+        <div id="tab-market" class="tab-content active">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#7CB342" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Market Research
+            </h2>
+            <div class="market-tiles">
+              <div class="market-tile"><div class="market-tile-val gradient-text">${m.marketSizeValue || '—'}</div><div class="market-tile-label">Market Size</div></div>
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--primary)">${m.cagr || '—'}</div><div class="market-tile-label">CAGR</div></div>
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--amber)">${m.growthPotential || '—'}</div><div class="market-tile-label">Growth Potential</div></div>
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--brown2)">${m.timeToMarket || '—'}</div><div class="market-tile-label">Time to Market</div></div>
+            </div>
+            <div class="plan-block"><div class="plan-label">Market Overview</div><div class="plan-text">${m.summary || '—'}</div></div>
+            <div class="two-col">
+              <div>
+                <div class="plan-label" style="margin-bottom:12px;">Target Audience</div>
+                <ul class="dot-list green">${(m.targetAudience || []).map(t => `<li>${t}</li>`).join('')}</ul>
+              </div>
+              <div>
+                <div class="plan-label" style="margin-bottom:12px;">Industry Trends</div>
+                <ul class="dot-list amber">${(m.industryTrends || []).map(t => `<li>${t}</li>`).join('')}</ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Competitors -->
+        <div id="tab-competitors" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#D4A017" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 000 11.4M17.7 6.3a8 8 0 010 11.4"/></svg>
+              Competitor Intelligence
+            </h2>
+            <div class="two-col" style="margin-bottom:20px;">
+              <div class="info-block"><div class="info-block-label">Market Gap</div><div class="info-block-text">${c.marketGap || '—'}</div></div>
+              <div class="info-block"><div class="info-block-label">Your Advantage</div><div class="info-block-text">${c.competitiveAdvantage || '—'}</div></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Company</th><th>Website</th><th>Strength</th><th>Market Share</th><th>Weakness</th></tr></thead>
+                <tbody>
+                  ${(c.competitors || []).map(comp => `
+                    <tr>
+                      <td style="font-weight:700;">${comp.name}</td>
+                      <td style="color:var(--text3);font-family:'DM Mono',monospace;font-size:12px;">${comp.website}</td>
+                      <td>${badge(comp.strength)}</td>
+                      <td style="font-weight:700;color:var(--amber)">${comp.marketShare}</td>
+                      <td style="color:var(--text3);font-size:13px;">${comp.weakness}</td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SWOT -->
+        <div id="tab-swot" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#A68B5B" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>
+              SWOT Analysis
+              <span style="margin-left:auto;font-size:12px;font-weight:500;color:var(--text3);display:flex;align-items:center;gap:10px;">
+                <span>Score: <strong style="color:${scoreColor(s.overallScore||0)}">${s.overallScore||0}/100</strong></span>
+                <span class="badge ${s.recommendation==='Go'?'badge-green':s.recommendation==='No-Go'?'badge-red':'badge-amber'}">${s.recommendation||'—'}</span>
+              </span>
+            </h2>
+            <div class="swot-grid">
+              <div class="swot-card strengths"><h3>Strengths</h3><ul>${(s.strengths||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div>
+              <div class="swot-card weaknesses"><h3>Weaknesses</h3><ul>${(s.weaknesses||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div>
+              <div class="swot-card opportunities"><h3>Opportunities</h3><ul>${(s.opportunities||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div>
+              <div class="swot-card threats"><h3>Threats</h3><ul>${(s.threats||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue -->
+        <div id="tab-revenue" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#D4A017" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+              Revenue Models
+            </h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;">
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--primary);font-size:15px;">${rv.recommendedModel||'—'}</div><div class="market-tile-label">Recommended Model</div></div>
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--primary)">${rv.year1Revenue||'—'}</div><div class="market-tile-label">Year 1 Revenue</div></div>
+              <div class="market-tile"><div class="market-tile-val" style="color:var(--amber)">${rv.breakEvenPoint||'—'}</div><div class="market-tile-label">Break-Even</div></div>
+            </div>
+            ${(rv.models||[]).map(model=>`
+              <div class="rev-card">
+                <div class="rev-card-top">
+                  <div class="rev-card-title">${model.type}</div>
+                  <div class="rev-proj">${model.projectedRevenue}</div>
+                </div>
+                <div class="rev-desc">${model.description}</div>
+                <div class="viability-row">
+                  <span class="viability-label">Viability</span>
+                  <div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${(model.viabilityScore||5)*10}%"></div></div>
+                  <span class="viability-score">${model.viabilityScore}/10</span>
+                </div>
+                <div class="pros-cons">
+                  <div><div class="pros-cons-label p">Pros</div><ul class="dot-list green" style="gap:5px;">${(model.pros||[]).map(x=>`<li style="font-size:12px;">${x}</li>`).join('')}</ul></div>
+                  <div><div class="pros-cons-label c">Cons</div><ul class="dot-list" style="gap:5px;">${(model.cons||[]).map(x=>`<li style="font-size:12px;color:var(--text3);">${x}</li>`).join('')}</ul></div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Risk -->
+        <div id="tab-risk" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#e74c3c" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+              Risk Assessment
+              <span style="margin-left:auto;">${badge(p.riskLevel + ' Risk')}</span>
+            </h2>
+            <div style="background:rgba(192,57,43,0.07);border:1px solid rgba(192,57,43,0.2);border-radius:10px;padding:14px;margin-bottom:18px;">
+              <div class="plan-label" style="color:#e74c3c;margin-bottom:6px;">Critical Risk — Address First</div>
+              <div style="font-size:13px;color:var(--text);line-height:1.6;">${rk.criticalRisk||'—'}</div>
+            </div>
+            ${(rk.risks||[]).map(r=>`
+              <div class="risk-card">
+                <div class="risk-card-top">
+                  <div class="risk-cat">${r.category}</div>
+                  <div style="display:flex;align-items:center;gap:10px;">${badge(r.severity)}<span style="font-size:13px;font-weight:700;color:${r.score>=7?'#e74c3c':r.score>=4?'var(--amber)':'var(--primary)'};">${r.score}/10</span></div>
+                </div>
+                <div class="risk-desc">${r.description}</div>
+                <div class="mitigation"><span class="mitigation-label">Mitigation:</span>${r.mitigation}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Business Plan -->
+        <div id="tab-plan" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#7CB342" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Business Plan
+            </h2>
+            ${[
+              ['Executive Summary', bp.executiveSummary],
+              ['Problem Statement', bp.problemStatement],
+              ['Our Solution', bp.solution],
+              ['Market Analysis', bp.marketAnalysis],
+              ['Marketing Strategy', bp.marketingStrategy],
+              ['Operations Plan', bp.operationsPlan],
+              ['Financial Projections', bp.financialProjections]
+            ].map(([label, text]) => `
+              <div class="plan-block">
+                <div class="plan-label">${label}</div>
+                <div class="plan-text">${text || '—'}</div>
+              </div>
+              <div class="divider" style="margin:16px 0;"></div>`).join('')}
+            <div class="two-col" style="margin-top:4px;">
+              <div>
+                <div class="plan-label" style="margin-bottom:12px;">Team Requirements</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  ${(bp.teamRequirements||[]).map(r=>`<div style="font-size:13px;color:var(--text2);padding:7px 12px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);">${r}</div>`).join('')}
+                </div>
+              </div>
+              <div>
+                <div class="plan-label" style="margin-bottom:12px;">Milestones</div>
+                <div class="milestone-list">
+                  ${(bp.milestones||[]).map(ms=>`
+                    <div class="milestone">
+                      <div class="milestone-dot"></div>
+                      <div><div class="milestone-month">${ms.month}</div><div class="milestone-goal">${ms.goal}</div></div>
+                    </div>`).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Investor Pitch -->
+        <div id="tab-pitch" class="tab-content">
+          <div class="section-block">
+            <h2>
+              <svg width="16" height="16" fill="none" stroke="#A68B5B" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              Investor Pitch
+            </h2>
+            ${pt.tagline ? `<div style="font-size:17px;font-weight:700;color:var(--brown2);margin-bottom:20px;font-style:italic;">"${pt.tagline}"</div>` : ''}
+            <div class="pitch-grid">
+              ${[
+                ['Problem', pt.problem],
+                ['Solution', pt.solution],
+                ['Market Opportunity', pt.market],
+                ['Business Model', pt.businessModel],
+                ['Traction / GTM', pt.traction],
+                ['Competition', pt.competition],
+                ['Team', pt.team],
+                ['Financials', pt.financials],
+                ['The Ask', pt.ask]
+              ].map(([label, text]) => `
+                <div class="pitch-item">
+                  <div class="pitch-label">${label}</div>
+                  <div class="pitch-text">${text || '—'}</div>
+                </div>`).join('')}
+            </div>
+            ${pt.elevatorPitch ? `
+              <div class="elevator">
+                <div class="elevator-label">30-Second Elevator Pitch</div>
+                <div class="elevator-text">${pt.elevatorPitch}</div>
+              </div>` : ''}
+          </div>
+        </div>
+      `;
+
+    } catch (err) {
+      document.getElementById('report-main').innerHTML = `<div class="alert alert-error">Failed to load report: ${err.message}</div>`;
+    }
+  }
+
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margin = 20;
+    let y = 20;
+
+    const addText = (text, size, bold, color) => {
+      doc.setFontSize(size || 11);
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setTextColor(...(color || [60, 60, 60]));
+      const lines = doc.splitTextToSize(String(text || ''), 170);
+      lines.forEach(line => {
+        if (y > 272) { doc.addPage(); y = 20; }
+        doc.text(line, margin, y);
+        y += (size || 11) * 0.55;
+      });
+      y += 2;
+    };
+
+    fetch(`/api/projects/${projectId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(p => {
+        const a = p.analysis;
+        doc.setFillColor(26, 36, 16);
+        doc.rect(0, 0, 210, 42, 'F');
+        doc.setTextColor(232, 220, 200);
+        doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+        doc.text('StartupIQ — Validation Report', margin, 18);
+        doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+        doc.text(p.ideaTitle, margin, 28);
+        doc.setFontSize(10);
+        doc.text(`Score: ${p.startupScore}/100  ·  Risk: ${p.riskLevel}  ·  ${new Date(p.createdAt).toLocaleDateString()}`, margin, 37);
+        y = 54;
+
+        addText('MARKET RESEARCH', 13, true, [74, 124, 31]);
+        addText(`Market Size: ${a.marketResearch?.marketSizeValue || '—'}  ·  CAGR: ${a.marketResearch?.cagr || '—'}  ·  Growth: ${a.marketResearch?.growthPotential || '—'}`);
+        addText(a.marketResearch?.summary || ''); y += 4;
+
+        addText('SWOT ANALYSIS', 13, true, [74, 124, 31]);
+        ['strengths','weaknesses','opportunities','threats'].forEach(key => {
+          addText(key.charAt(0).toUpperCase()+key.slice(1)+':', 10, true);
+          (a.swot?.[key]||[]).forEach(x => addText(`  • ${x}`));
+        }); y += 4;
+
+        addText('BUSINESS PLAN', 13, true, [74, 124, 31]);
+        [['executiveSummary','Executive Summary'],['problemStatement','Problem'],['solution','Solution'],['marketingStrategy','Marketing'],['financialProjections','Financials']].forEach(([key,label]) => {
+          addText(label+':', 10, true);
+          addText(a.businessPlan?.[key]||'—'); y += 2;
+        });
+
+        addText('INVESTOR PITCH', 13, true, [74, 124, 31]);
+        addText('Elevator Pitch:', 10, true);
+        addText(a.investorPitch?.elevatorPitch||'—');
+        addText('The Ask:', 10, true);
+        addText(a.investorPitch?.ask||'—');
+
+        doc.save(`StartupIQ_${p.ideaTitle.replace(/\s+/g,'_')}.pdf`);
+      });
+  }
+
+  loadReport();
+</script>
+</body>
+</html>

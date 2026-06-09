@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validate Idea — StartupIQ</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    body { display: flex; min-height: 100vh; }
+    .validate-wrap { max-width: 640px; width: 100%; }
+    #form-section { display: block; }
+    #loading-section { display: none; }
+    .tip-box {
+      background: rgba(212,160,23,0.07); border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+      font-size: 13px; color: var(--text2); line-height: 1.6;
+    }
+    .tip-box strong { color: var(--amber); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="orb-wrap" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo-mark">S</div>
+    <div class="sidebar-logo-text">StartupIQ</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-avatar" id="user-avatar">U</div>
+    <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+    <div class="sidebar-user-email" id="sidebar-email"></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Navigation</div>
+    <div class="sidebar-item" onclick="window.location.href='dashboard.html'">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="sidebar-item active">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      New Validation
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn btn-outline" style="width:100%;justify-content:center;font-size:13px;" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main-content" style="position:relative;z-index:1;">
+  <div class="validate-wrap">
+    <div class="page-header">
+      <div class="page-eyebrow">AI Pipeline</div>
+      <div class="page-title">Validate a Startup Idea</div>
+      <div class="page-subtitle">Seven specialized agents will analyze your idea in parallel</div>
+    </div>
+
+    <!-- Form -->
+    <div id="form-section" class="card anim-scale-in">
+      <div id="alert-box"></div>
+
+      <div class="tip-box">
+        <strong>Tip:</strong> The more detail you provide, the more accurate and specific the analysis will be. Describe your target users, the problem, and your approach.
+      </div>
+
+      <div class="input-group">
+        <label>Startup Name / Title</label>
+        <input type="text" id="title" placeholder="e.g. AI-powered internship platform for students"/>
+      </div>
+      <div class="input-group">
+        <label>Describe Your Idea</label>
+        <textarea id="description" rows="6" placeholder="Describe the problem you are solving and how your startup addresses it. Who is your target user? What makes it different?"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn-primary" style="padding:13px 28px;" onclick="submitIdea()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Run Analysis
+        </button>
+        <a href="dashboard.html" class="btn btn-outline">Cancel</a>
+      </div>
+    </div>
+
+    <!-- Loading / Agent Progress -->
+    <div id="loading-section" class="card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+        <div class="spinner"></div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">Analysis Running</div>
+          <div style="font-size:13px;color:var(--text3);margin-top:2px;" id="loading-sub">Spinning up agents...</div>
+        </div>
+      </div>
+
+      <div id="agent-list">
+        <div class="agent-step" id="ag-market">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Market Research Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-competitor">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Competitor Analysis Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-swot">
+          <div class="agent-dot"></div>
+          <div class="agent-label">SWOT Analysis Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-revenue">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Revenue Model Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-risk">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Risk Assessment Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-plan">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Business Plan Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+        <div class="agent-step" id="ag-pitch">
+          <div class="agent-dot"></div>
+          <div class="agent-label">Investor Pitch Agent</div>
+          <div class="agent-status">Queued</div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding:13px 15px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;">Agents run in parallel — typical completion: 20–45 seconds</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!token) window.location.href = 'login.html';
+
+  document.getElementById('sidebar-name').textContent = user.name || 'User';
+  document.getElementById('sidebar-email').textContent = user.email || '';
+  if (document.getElementById('user-avatar')) {
+    document.getElementById('user-avatar').textContent = (user.name || 'U')[0].toUpperCase();
+  }
+
+  function logout() { localStorage.clear(); window.location.href = '../index.html'; }
+
+  const agentIds = ['ag-market','ag-competitor','ag-swot','ag-revenue','ag-risk','ag-plan','ag-pitch'];
+  let animInterval;
+
+  function startAgentAnimation() {
+    let i = 0;
+    agentIds.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','complete');
+      el.querySelector('.agent-status').textContent = 'Queued';
+    });
+    animInterval = setInterval(() => {
+      if (i < agentIds.length) {
+        if (i > 0) {
+          const prev = document.getElementById(agentIds[i - 1]);
+          prev.classList.remove('active'); prev.classList.add('complete');
+          prev.querySelector('.agent-status').textContent = 'Done';
+        }
+        const cur = document.getElementById(agentIds[i]);
+        cur.classList.add('active');
+        cur.querySelector('.agent-status').textContent = 'Running...';
+        i++;
+      }
+    }, 3200);
+  }
+
+  function stopAgentAnimation() {
+    clearInterval(animInterval);
+    agentIds.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active'); el.classList.add('complete');
+      el.querySelector('.agent-status').textContent = 'Done';
+    });
+  }
+
+  async function submitIdea() {
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const alertBox = document.getElementById('alert-box');
+
+    if (!title || !description) {
+      alertBox.innerHTML = '<div class="alert alert-error">Both fields are required.</div>'; return;
+    }
+    if (description.length < 30) {
+      alertBox.innerHTML = '<div class="alert alert-error">Please describe your idea in at least 30 characters.</div>'; return;
+    }
+
+    document.getElementById('form-section').style.display = 'none';
+    document.getElementById('loading-section').style.display = 'block';
+    startAgentAnimation();
+
+    try {
+      const res = await fetch('/api/analysis/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ideaTitle: title, ideaDescription: description })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      const projectId = data.projectId;
+      document.getElementById('loading-sub').textContent = 'Agents are analyzing your idea...';
+
+      const poll = setInterval(async () => {
+        try {
+          const check = await fetch(`/api/projects/${projectId}`, { headers: { Authorization: `Bearer ${token}` } });
+          const project = await check.json();
+          if (project.status === 'Complete') {
+            clearInterval(poll);
+            stopAgentAnimation();
+            document.getElementById('loading-sub').textContent = 'Complete — loading your report...';
+            setTimeout(() => { window.location.href = `report.html?id=${projectId}`; }, 900);
+          } else if (project.status === 'Failed') {
+            clearInterval(poll);
+            document.getElementById('loading-section').style.display = 'none';
+            document.getElementById('form-section').style.display = 'block';
+            document.getElementById('alert-box').innerHTML = '<div class="alert alert-error">Analysis failed. Check your Groq API key and try again.</div>';
+          }
+        } catch (e) {}
+      }, 3000);
+    } catch (err) {
+      document.getElementById('loading-section').style.display = 'none';
+      document.getElementById('form-section').style.display = 'block';
+      alertBox.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>
